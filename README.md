@@ -14,3 +14,20 @@ git clone git@github.com:cafebazaar/s3-api-scala.git
 cd s3-api-scala
 mvn install
 ```
+# Usage
+Maven:
+```
+<dependency>
+    <groupId>ir.cafebazaar.kandoo</groupId>
+    <artifactId>s3api</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+</dependency>
+```
+SBT:
+```
+libraryDependencies += "ir.cafebazaar.kandoo" % "s3api" % "0.1.0-SNAPSHOT" % "provided"
+```
+Gradle:
+```
+provided group: 'ir.cafebazaar.kandoo', name: 's3api', version: '0.1.0-SNAPSHOT'
+```
