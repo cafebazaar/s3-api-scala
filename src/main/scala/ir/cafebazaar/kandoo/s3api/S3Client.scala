@@ -45,8 +45,7 @@ class S3Client(val bucket: String = "zeppelin-data") {
     }
 
     new BufferedReader(
-      new InputStreamReader(
-        inputStream, "UTF-8")
+      new InputStreamReader(inputStream, "UTF-8")
     )
   }
 }
