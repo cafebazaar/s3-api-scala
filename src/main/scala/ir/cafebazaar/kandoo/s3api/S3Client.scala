@@ -5,16 +5,18 @@ import java.util
 import java.util.zip.GZIPInputStream
 
 import com.amazonaws.auth.PropertiesCredentials
+import com.amazonaws.services.s3.model.GetObjectRequest
 import com.amazonaws.services.s3.{AmazonS3Client, S3ClientOptions}
+import org.apache.zeppelin.spark.ZeppelinContext
 
 /**
   * Created by alirabiee on 8/28/17.
   */
-class S3Client(val bucket: String = "zeppelin-data") {
+class S3Client(val bucket: String = "zeppelin-data", val userBucket: String = "zeppelin-user-data") {
   private val clientOptions = new S3ClientOptions();
   clientOptions.setPathStyleAccess(true);
 
-  private val s3Client =
+  val s3Client =
     new AmazonS3Client(new PropertiesCredentials(new File("/etc/s3_credentials.conf")));
 
   s3Client.setEndpoint("http://kise.roo.cloud");
@@ -47,5 +49,20 @@ class S3Client(val bucket: String = "zeppelin-data") {
     new BufferedReader(
       new InputStreamReader(inputStream, "UTF-8")
     )
+  }
+
+  def makeUploadPath(filename: String, zeppelinContext: ZeppelinContext): String = {
+    val user: String = zeppelinContext.getInterpreterContext.getAuthenticationInfo.getUser
+    s"s3a://$userBucket/user/$user/$filename"
+  }
+
+  def downloadFile(filename: String, file: File = null): Unit = {
+    var f = file
+
+    if (file == null) {
+      f = new File(filename.split("/").reverseIterator.next())
+    }
+
+    s3Client.getObject(new GetObjectRequest(bucket, filename), f)
   }
 }

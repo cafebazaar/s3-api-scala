@@ -43,6 +43,11 @@
             <artifactId>aws-java-sdk</artifactId>
             <version>1.10.62</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.zeppelin</groupId>
+            <artifactId>zeppelin-spark_2.11</artifactId>
+            <version>0.7.2</version>
+        </dependency>
     </dependencies>
 
     <build>
