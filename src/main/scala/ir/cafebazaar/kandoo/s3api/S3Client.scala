@@ -13,14 +13,21 @@ import org.apache.zeppelin.spark.ZeppelinContext
   * Created by alirabiee on 8/28/17.
   */
 class S3Client(val bucket: String = "zeppelin-data", val userBucket: String = "zeppelin-user-data") {
-  private val clientOptions = new S3ClientOptions();
-  clientOptions.setPathStyleAccess(true);
+  private val clientOptions = new S3ClientOptions()
+  clientOptions.setPathStyleAccess(true)
 
-  val s3Client =
-    new AmazonS3Client(new PropertiesCredentials(new File("/etc/s3_credentials.conf")));
+  private val credentialsFile: File = new File("/etc/s3_credentials.conf")
 
-  s3Client.setEndpoint("http://kise.roo.cloud");
-  s3Client.setS3ClientOptions(clientOptions);
+  private val s3Client = if (credentialsFile.exists()) new AmazonS3Client(new PropertiesCredentials(credentialsFile)) else null
+
+  if (s3Client != null) {
+    s3Client.setEndpoint("http://kise.roo.cloud")
+    s3Client.setS3ClientOptions(clientOptions)
+  }
+
+  def this() {
+    this(bucket = "zeppelin-data")
+  }
 
   def ls(prefix: String = "", namePattern: String = ".*"): util.Set[String] = {
     val summaries = s3Client.listObjects(bucket, prefix).getObjectSummaries.iterator
