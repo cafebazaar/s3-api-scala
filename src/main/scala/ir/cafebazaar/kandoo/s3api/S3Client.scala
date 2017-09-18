@@ -9,6 +9,8 @@ import com.amazonaws.services.s3.model.GetObjectRequest
 import com.amazonaws.services.s3.{AmazonS3Client, S3ClientOptions}
 import org.apache.zeppelin.spark.ZeppelinContext
 
+import scala.collection.JavaConversions._
+
 /**
   * Created by alirabiee on 8/28/17.
   */
@@ -29,19 +31,25 @@ class S3Client(val bucket: String = "zeppelin-data", val userBucket: String = "z
     this(bucket = "zeppelin-data")
   }
 
-  def ls(prefix: String = "", namePattern: String = ".*"): util.Set[String] = {
+  def ls(prefix: String = "", namePattern: String = ".*", fullPath: Boolean = false): List[String] = {
     val summaries = s3Client.listObjects(bucket, prefix).getObjectSummaries.iterator
     val result: util.Map[String, Boolean] = new util.HashMap
 
+    val pfx = prefix.replaceFirst("^[/\\\\]?(.*?)[/\\\\]?$", "$1")
+
     while (summaries.hasNext) {
-      val itemName: String = summaries.next.getKey.replaceFirst(prefix + "[/\\\\]?", "").split("[/\\\\]")(0)
+      val itemName: String = summaries.next.getKey.replaceFirst(pfx + "[/\\\\]?", "").split("[/\\\\]")(0)
 
       if (itemName.matches(namePattern)) {
-        result.put(itemName, true)
+        if(fullPath) {
+          result.put(s"//$bucket/$pfx/$itemName", true)
+        } else {
+          result.put(itemName, true)
+        }
       }
     }
 
-    result.keySet()
+    result.keySet().toList
   }
 
   def readFile(filename: String): BufferedReader = {
