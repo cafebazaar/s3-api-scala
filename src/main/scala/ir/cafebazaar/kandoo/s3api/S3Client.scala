@@ -41,7 +41,7 @@ class S3Client(val bucket: String = "zeppelin-data", val userBucket: String = "z
       val itemName: String = summaries.next.getKey.replaceFirst(pfx + "[/\\\\]?", "").split("[/\\\\]")(0)
 
       if (itemName.matches(namePattern)) {
-        if(fullPath) {
+        if (fullPath) {
           result.put(s"//$bucket/$pfx/$itemName", true)
         } else {
           result.put(itemName, true)
@@ -56,9 +56,9 @@ class S3Client(val bucket: String = "zeppelin-data", val userBucket: String = "z
     var inputStream: InputStream = null
 
     if (filename.toLowerCase.endsWith(".gz")) {
-      inputStream = new GZIPInputStream(s3Client.getObject(bucket, filename).getObjectContent())
+      inputStream = new GZIPInputStream(s3Client.getObject(bucket, filename.replaceFirst(s"//$bucket/?", "")).getObjectContent())
     } else {
-      inputStream = s3Client.getObject(bucket, filename).getObjectContent()
+      inputStream = s3Client.getObject(bucket, filename.replaceFirst(s"//$bucket/?", "")).getObjectContent()
     }
 
     new BufferedReader(
