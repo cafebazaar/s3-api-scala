@@ -9,7 +9,7 @@ import com.amazonaws.services.s3.model.GetObjectRequest
 import com.amazonaws.services.s3.{AmazonS3Client, S3ClientOptions}
 import org.apache.zeppelin.spark.ZeppelinContext
 
-import scala.collection.JavaConversions._
+import collection.JavaConverters._
 
 /**
   * Created by alirabiee on 8/28/17.
@@ -49,7 +49,7 @@ class S3Client(val bucket: String = "zeppelin-data", val userBucket: String = "z
       }
     }
 
-    result.keySet().toList
+    result.keySet().asScala.toList
   }
 
   def readFile(filename: String): BufferedReader = {
