@@ -31,18 +31,18 @@ class S3Client(val bucket: String = "zeppelin-data", val userBucket: String = "z
     this(bucket = "zeppelin-data")
   }
 
-  def ls(prefix: String = "", namePattern: String = ".*", fullPath: Boolean = false): List[String] = {
-    val summaries = s3Client.listObjects(bucket, prefix).getObjectSummaries.iterator
+  def ls(path: String = "", pattern: String = ".*", absolute: Boolean = false): List[String] = {
+    val summaries = s3Client.listObjects(bucket, path).getObjectSummaries.iterator
     val result: util.Map[String, Boolean] = new util.HashMap
 
-    val pfx = prefix.replaceFirst("^[/\\\\]?(.*?)[/\\\\]?$", "$1")
+    val pfx = path.replaceFirst("^[/\\\\]?(.*?)[/\\\\]?$", "$1")
 
     while (summaries.hasNext) {
       val itemName: String = summaries.next.getKey.replaceFirst(pfx + "[/\\\\]?", "").split("[/\\\\]")(0)
 
-      if (itemName.matches(namePattern)) {
-        if (fullPath) {
-          result.put(s"//$bucket/$pfx/$itemName", true)
+      if (itemName.matches(pattern)) {
+        if (absolute) {
+          result.put(s"s3a://$bucket/$pfx/$itemName", true)
         } else {
           result.put(itemName, true)
         }
@@ -69,6 +69,10 @@ class S3Client(val bucket: String = "zeppelin-data", val userBucket: String = "z
   def makeUploadPath(filename: String, zeppelinContext: ZeppelinContext): String = {
     val user: String = zeppelinContext.getInterpreterContext.getAuthenticationInfo.getUser
     s"s3a://$userBucket/user/$user/$filename"
+  }
+
+  def path(filename: String, zeppelinContext: ZeppelinContext): String = {
+    makeUploadPath(filename, zeppelinContext)
   }
 
   def downloadFile(filename: String, file: File = null): Unit = {
