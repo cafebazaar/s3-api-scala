@@ -5,7 +5,7 @@ import java.util
 import java.util.zip.GZIPInputStream
 
 import com.amazonaws.auth.PropertiesCredentials
-import com.amazonaws.services.s3.model.GetObjectRequest
+import com.amazonaws.services.s3.model.{GetObjectRequest, ListObjectsRequest}
 import com.amazonaws.services.s3.{AmazonS3Client, S3ClientOptions}
 import org.apache.zeppelin.spark.ZeppelinContext
 
@@ -32,17 +32,17 @@ class S3Client(val bucket: String = "zeppelin-data", val userBucket: String = "z
   }
 
   def ls(path: String = "", pattern: String = ".*", absolute: Boolean = false): List[String] = {
-    val summaries = s3Client.listObjects(bucket, path).getObjectSummaries.iterator
+    val pfx = if(!path.equals("")) path.replaceFirst("^[/\\\\]?(.*?)[/\\\\]?$", "$1/") else ""
+    val request = new ListObjectsRequest(bucket, pfx, "", "/", Integer.MAX_VALUE)
+    val summaries = s3Client.listObjects(request).getCommonPrefixes.iterator
     val result: util.Map[String, Boolean] = new util.HashMap
 
-    val pfx = path.replaceFirst("^[/\\\\]?(.*?)[/\\\\]?$", "$1")
-
     while (summaries.hasNext) {
-      val itemName: String = summaries.next.getKey.replaceFirst(pfx + "[/\\\\]?", "").split("[/\\\\]")(0)
+      val itemName: String = summaries.next.replaceFirst(pfx, "").split("/")(0)
 
       if (itemName.matches(pattern)) {
         if (absolute) {
-          result.put(s"s3a://$bucket/$pfx/$itemName", true)
+          result.put(s"s3a://$bucket/$pfx$itemName", true)
         } else {
           result.put(itemName, true)
         }
